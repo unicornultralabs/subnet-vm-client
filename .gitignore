@@ -1,0 +1,30 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+/.idea
+.idea
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+
+
+# debug
+npm-debug.log*
+
+# local env files
+.env
+.env*.local
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+/.idea/git_toolbox_prj.xml
+/.idea/modules.xml
+/.idea/inspectionProfiles/Project_Default.xml
+/.idea/social-hub-frontend.iml
+/.idea/vcs.xml
+/.idea/workspace.xml
