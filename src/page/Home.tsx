@@ -50,7 +50,9 @@ const Home: React.FC = () => {
 
   // </div>
   // );
+  const [isInGame, setIsInGame] = useState(false);
   const [tps, setTps] = useState(0)
+  const [spamCount, setSpamCount] = useState(0);
   const [dataPoints, setDataPoints] = useState<{ x: number; y: number; }[]>([
     // { label: "0xsaf10", y: 71 },
     // { label: "0xsaf20", y: 55 },
@@ -67,29 +69,9 @@ const Home: React.FC = () => {
     // { label: "0xsaf130", y: 36 }
   ]);
 
-  // useEffect(() => {
-  //   const intervalId = setInterval(() => {
-  //     let newData = {
-  //       "from_address": (Math.random() * 100).toFixed(0), // Random number between 0 and 100
-  //       "from_value": (Math.random() * 100).toFixed(0),   // Random number between 0 and 100
-  //       "to_address": (Math.random() * 100).toFixed(0),   // Random number between 0 and 100
-  //       "to_value": (Math.random() * 100).toFixed(0)      // Random number between 0 and 100
-  //     };
-  //     const updatedDataPoints = [
-  //       {
-  //         label: `${newData.from_address}`, // Parse as base 10 (decimal)
-  //         y: parseInt(newData.from_value, 10)    // Parse as base 10 (decimal)
-  //       },
-  //       {
-  //         label: `${newData.to_address}`,   // Parse as base 10 (decimal)
-  //         y: parseInt(newData.to_value, 10)      // Parse as base 10 (decimal)
-  //       }
-  //     ];
-  //     setDataPoints(prevDataPoints => [...prevDataPoints, ...updatedDataPoints]);
-  //   }, 2000);
-
-  //   return () => clearInterval(intervalId);
-  // }, []);
+  const handleJoinGame = () => {
+    setIsInGame(true);
+  };
   
   useEffect(() => {
     const socket = io('wss://b10g0wn1-8888.asse.devtunnels.ms');
@@ -163,6 +145,31 @@ const Home: React.FC = () => {
       <CanvasJSChart options={options} />
       <div className="flex items-center justify-center">
         <div className="bg-gray-100 p-4">TPS: <span className="font-bold text-xl pl-1">{tps}</span> transactions/second</div>
+      </div> <br /><br />
+      <div className="text-center">
+      <button 
+        onClick={handleJoinGame} 
+        disabled={isInGame}
+        className={`px-4 py-2 font-semibold text-white rounded-lg ${
+          isInGame ? 'bg-gray-500 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-700'
+        }`}
+      >
+        {isInGame ? 'In Game' : 'Join Game'}
+      </button> <br /><br />
+      <button 
+        className={`px-4 py-2 font-semibold text-white rounded-lg ${
+          isInGame ? 'bg-green-500 hover:bg-green-700' : 'bg-gray-500 cursor-not-allowed'
+        }`}
+        disabled={!isInGame}
+        onClick={() => setSpamCount(spamCount + 1)}
+      >
+        Racing.....
+      </button>
+      <div 
+        className="mt-4 text-lg font-medium text-gray-700"
+      >
+        Spam Count: {spamCount}
+      </div>
       </div>
     </div>
   );
