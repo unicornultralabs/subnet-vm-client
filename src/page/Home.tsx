@@ -53,20 +53,9 @@ const Home: React.FC = () => {
   const [isInGame, setIsInGame] = useState(false);
   const [tps, setTps] = useState(0)
   const [spamCount, setSpamCount] = useState(0);
+  const [socket, setSocket] = useState<any>(null);
   const [dataPoints, setDataPoints] = useState<{ x: number; y: number; }[]>([
     // { label: "0xsaf10", y: 71 },
-    // { label: "0xsaf20", y: 55 },
-    // { label: "0xsaf30", y: 50 },
-    // { label: "0xsaf40", y: 65 },
-    // { label: "0xsaf50", y: 71 },
-    // { label: "0xsaf60", y: 68 },
-    // { label: "0xsaf70", y: 38 },
-    // { label: "0xsaf80", y: 92 },
-    // { label: "0xsaf90", y: 54 },
-    // { label: "0xsaf100", y: 60 },
-    // { label: "0xsaf110", y: 21 },
-    // { label: "0xsaf120", y: 49 },
-    // { label: "0xsaf130", y: 36 }
   ]);
 
   const handleJoinGame = () => {
@@ -74,7 +63,7 @@ const Home: React.FC = () => {
   };
   
   useEffect(() => {
-    const socket = io('wss://b10g0wn1-8888.asse.devtunnels.ms');
+    const socket = io('ws://localhost:8888');
 
     socket.on('connect', () => {
       console.log('Connected to server');
@@ -112,6 +101,7 @@ const Home: React.FC = () => {
       });
     });
     
+    setSocket(socket);
 
     socket.on('disconnect', () => {
       console.log('Disconnected from server');
@@ -121,6 +111,13 @@ const Home: React.FC = () => {
       socket.close();
     };
   }, []);
+
+  const handleRaceClick = () => {
+    if (socket) {
+      socket.send('race');
+      setSpamCount(spamCount + 1);
+    }
+  };
 
   const options = {
     animationEnabled: true,
@@ -161,7 +158,7 @@ const Home: React.FC = () => {
           isInGame ? 'bg-green-500 hover:bg-green-700' : 'bg-gray-500 cursor-not-allowed'
         }`}
         disabled={!isInGame}
-        onClick={() => setSpamCount(spamCount + 1)}
+        onClick={() => handleRaceClick()}
       >
         Racing.....
       </button>
