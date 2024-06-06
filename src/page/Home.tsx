@@ -50,36 +50,86 @@ const Home: React.FC = () => {
 
   // </div>
   // );
-  const [dataPoints, setDataPoints] = useState([
-    { x: 10, y: 71 },
-    { x: 20, y: 55 },
-    { x: 30, y: 50 },
-    { x: 40, y: 65 },
-    { x: 50, y: 71 },
-    { x: 60, y: 68 },
-    { x: 70, y: 38 },
-    { x: 80, y: 92, label: "Highest" },
-    { x: 90, y: 54 },
-    { x: 100, y: 60 },
-    { x: 110, y: 21 },
-    { x: 120, y: 49 },
-    { x: 130, y: 36 }
+  const [tps, setTps] = useState(0)
+  const [dataPoints, setDataPoints] = useState<{ x: number; y: number; }[]>([
+    // { label: "0xsaf10", y: 71 },
+    // { label: "0xsaf20", y: 55 },
+    // { label: "0xsaf30", y: 50 },
+    // { label: "0xsaf40", y: 65 },
+    // { label: "0xsaf50", y: 71 },
+    // { label: "0xsaf60", y: 68 },
+    // { label: "0xsaf70", y: 38 },
+    // { label: "0xsaf80", y: 92 },
+    // { label: "0xsaf90", y: 54 },
+    // { label: "0xsaf100", y: 60 },
+    // { label: "0xsaf110", y: 21 },
+    // { label: "0xsaf120", y: 49 },
+    // { label: "0xsaf130", y: 36 }
   ]);
 
+  // useEffect(() => {
+  //   const intervalId = setInterval(() => {
+  //     let newData = {
+  //       "from_address": (Math.random() * 100).toFixed(0), // Random number between 0 and 100
+  //       "from_value": (Math.random() * 100).toFixed(0),   // Random number between 0 and 100
+  //       "to_address": (Math.random() * 100).toFixed(0),   // Random number between 0 and 100
+  //       "to_value": (Math.random() * 100).toFixed(0)      // Random number between 0 and 100
+  //     };
+  //     const updatedDataPoints = [
+  //       {
+  //         label: `${newData.from_address}`, // Parse as base 10 (decimal)
+  //         y: parseInt(newData.from_value, 10)    // Parse as base 10 (decimal)
+  //       },
+  //       {
+  //         label: `${newData.to_address}`,   // Parse as base 10 (decimal)
+  //         y: parseInt(newData.to_value, 10)      // Parse as base 10 (decimal)
+  //       }
+  //     ];
+  //     setDataPoints(prevDataPoints => [...prevDataPoints, ...updatedDataPoints]);
+  //   }, 2000);
+
+  //   return () => clearInterval(intervalId);
+  // }, []);
+  
   useEffect(() => {
-    const socket = io('ws://localhost:8888/ping');
+    const socket = io('wss://b10g0wn1-8888.asse.devtunnels.ms');
 
     socket.on('connect', () => {
       console.log('Connected to server');
     });
     console.log('alo')
-    socket.on('updateData', (newData: {address: string, balance: string}[]) => {
-      const updatedDataPoints = newData.map(({ address, balance }) => ({
-        x: parseInt(address, 10),
-        y: parseInt(balance, 10)
-      }));
-      setDataPoints(updatedDataPoints);
+    socket.on('message', (newData: {from_address: string, from_value: string, to_address: string, to_value: string, tps: number}) => {
+      setTps(newData.tps)
+      // console.log("newData ", newData);
+      const updatedDataPoints = [
+        {
+          x: Number(newData.from_address.replace('0x', '')),
+          y: Number(newData.from_value)
+        },
+        {
+          x: Number(newData.to_address.replace('0x', '')),
+          y: Number(newData.to_value)
+        }
+      ]
+      setDataPoints(prevDataPoints => {
+        const newDataPoints = [...prevDataPoints];
+        // console.log("count prevDataPoints ", prevDataPoints.length);
+        
+        updatedDataPoints.forEach(newPoint => {
+          if (!(newPoint.y > 1000000)) {
+            const existingIndex = newDataPoints.findIndex(point => point.x === newPoint.x);
+            if (existingIndex >= 0) {
+              newDataPoints[existingIndex].y = newPoint.y;
+            } else {
+              newDataPoints.push(newPoint);
+            }
+          }
+        });
+
+        return newDataPoints;
+      });
     });
+    
 
     socket.on('disconnect', () => {
       console.log('Disconnected from server');
@@ -111,6 +161,9 @@ const Home: React.FC = () => {
   return (
     <div>
       <CanvasJSChart options={options} />
+      <div className="flex items-center justify-center">
+        <div className="bg-gray-100 p-4">TPS: <span className="font-bold text-xl pl-1">{tps}</span> transactions/second</div>
+      </div>
     </div>
   );
 };
