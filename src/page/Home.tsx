@@ -63,7 +63,7 @@ const Home: React.FC = () => {
   };
   
   useEffect(() => {
-    const socket = io('ws://localhost:8888');
+    const socket = io('wss://b10g0wn1-8888.asse.devtunnels.ms/');
 
     socket.on('connect', () => {
       console.log('Connected to server');
@@ -112,9 +112,24 @@ const Home: React.FC = () => {
     };
   }, []);
 
-  const handleRaceClick = () => {
+  const handleRacer1Click = () => {
     if (socket) {
-      socket.send('race');
+      const message = {
+        topic: 'race',
+        userAddress: '0x0'
+      };
+      socket.send(JSON.stringify(message));
+      setSpamCount(spamCount + 1);
+    }
+  };
+
+  const handleRacer2Click = () => {
+    if (socket) {
+      const message = {
+        topic: 'race',
+        userAddress: '0x1'
+      };
+      socket.send(JSON.stringify(message));
       setSpamCount(spamCount + 1);
     }
   };
@@ -153,19 +168,25 @@ const Home: React.FC = () => {
       >
         {isInGame ? 'In Game' : 'Join Game'}
       </button> <br /><br />
+      <div className="flex justify-center">
       <button 
         className={`px-4 py-2 font-semibold text-white rounded-lg ${
           isInGame ? 'bg-green-500 hover:bg-green-700' : 'bg-gray-500 cursor-not-allowed'
         }`}
         disabled={!isInGame}
-        onClick={() => handleRaceClick()}
+        onClick={() => handleRacer1Click()}
       >
-        Racing.....
+        Racer 1
       </button>
-      <div 
-        className="mt-4 text-lg font-medium text-gray-700"
+      <button 
+        className={`px-4 py-2 font-semibold text-white rounded-lg ml-2 ${
+          isInGame ? 'bg-green-500 hover:bg-green-700' : 'bg-gray-500 cursor-not-allowed'
+        }`}
+        disabled={!isInGame}
+        onClick={() => handleRacer2Click()}
       >
-        Spam Count: {spamCount}
+        Racer 2
+      </button>
       </div>
       </div>
     </div>
