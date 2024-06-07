@@ -52,7 +52,7 @@ const Home: React.FC = () => {
   // );
   const [explorerData, setExplorerData] = useState<any[]>([]);
   const [lastClickGame, setLastClickGame] = useState<number>(0);
-  const [winned, setWinned] = useState(false);
+  const [winned, setWinned] = useState<string | undefined>('');
   const [isInGame, setIsInGame] = useState(false);
   const [tps, setTps] = useState(0)
   const [spamCount, setSpamCount] = useState(0);
@@ -60,6 +60,8 @@ const Home: React.FC = () => {
   const [dataPoints, setDataPoints] = useState<{ x: number; y: number; }[]>([
     // { label: "0xsaf10", y: 71 },
   ]);
+
+  const [lastWonTx, setLastWonTx] = useState<string | undefined>('');
 
   const handleJoinGame = () => {
     setIsInGame(true);
@@ -79,8 +81,9 @@ const Home: React.FC = () => {
       to_address?: string, 
       to_value?: string, 
       tps?: number, 
-      win?: boolean,
+      win?: string,
       data?: any 
+      txHash?: string,
     }) => {
       console.log("new Data: ", newData);
       
@@ -121,7 +124,8 @@ const Home: React.FC = () => {
           break;  
 
         case '0xduangua': 
-          setWinned(true)
+          setWinned(newData.win)
+          setLastWonTx(newData.txHash)
           break; 
 
         default:
@@ -144,7 +148,7 @@ const Home: React.FC = () => {
     if (socket) {
       const message = {
         topic: 'race',
-        userAddress: '0x0'
+        userAddress: '0x1000001'
       };
       socket.send(JSON.stringify(message));
       setLastClickGame(0)
@@ -156,7 +160,7 @@ const Home: React.FC = () => {
     if (socket) {
       const message = {
         topic: 'race',
-        userAddress: '0x1'
+        userAddress: '0x1000002'
       };
       socket.send(JSON.stringify(message));
       setLastClickGame(1)
@@ -165,7 +169,7 @@ const Home: React.FC = () => {
   };
 
   const restartGame = () => {
-    setWinned(false)
+    setWinned(undefined)
     setIsInGame(false)
   }
 
@@ -239,10 +243,10 @@ const Home: React.FC = () => {
             </div>
           : 
           <div className="pt-5 text-2xl text-blueSecondary font-bold mb-2">
-            Winner is: .....
+            Winner is: ..... <br></br>
+            Proof winner: {`https://pudge.explorer.nervos.org/transaction/${lastWonTx}`}
           </div>
         }
-        
         {(isInGame && winned) && <button 
             className={`px-4 py-2 font-semibold text-white rounded-lg ml-2 ${
               isInGame ? 'bg-red-600 hover:bg-red-700' : 'bg-gray-500 cursor-not-allowed'
