@@ -5,12 +5,19 @@
   "dependencies": {
     "@canvasjs/charts": "^3.8.8",
     "@canvasjs/react-charts": "^1.0.2",
+    "@ckb-lumos/base": "^0.23.0",
+    "@ckb-lumos/codec": "^0.23.0",
+    "@ckb-lumos/lumos": "^0.23.0",
     "@types/canvasjs": "^1.9.11",
     "axios": "^1.6.8",
+    "buffer": "^6.0.3",
+    "crypto-browserify": "^3.12.0",
     "ethers": "^6.11.1",
     "flowbite": "^2.3.0",
     "flowbite-react": "^0.7.5",
+    "process": "^0.11.10",
     "react": "^18.2.0",
+    "react-app-rewired": "^2.2.1",
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.51.1",
     "react-icons": "^5.0.1",
@@ -18,6 +25,7 @@
     "react-scripts": "5.0.1",
     "react-toastify": "^10.0.5",
     "socket.io-client": "^4.7.5",
+    "stream-browserify": "^3.0.0",
     "swr": "^2.2.5",
     "typescript": "^4.9.5",
     "wagmi": "^1.4.6",
@@ -25,10 +33,10 @@
     "zustand": "^4.5.2"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject",
+    "start": "react-app-rewired start",
+    "build": "react-app-rewired build",
+    "test": "react-app-rewired test",
+    "eject": "react-app-rewired eject",
     "format": "prettier --write \"**/*.{ts,tsx,md,mdx,css,scss}\""
   },
   "eslintConfig": {

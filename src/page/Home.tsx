@@ -3,6 +3,7 @@ import io from 'socket.io-client';
 
 // @ts-ignore
 import CanvasJSReact from '@canvasjs/react-charts';
+import LumosService from '../utils/ckb-lib.service';
 
 let CanvasJSChart = CanvasJSReact.CanvasJSChart;
 
@@ -61,11 +62,24 @@ const Home: React.FC = () => {
     // { label: "0xsaf10", y: 71 },
   ]);
 
+  const [onChainProofMsg, setProofMsg] = useState<string | undefined>('');
+
   const [lastWonTx, setLastWonTx] = useState<string | undefined>('');
 
   const handleJoinGame = () => {
     setIsInGame(true);
   };
+
+  // useEffect(() => {
+  //   const performAsyncOperation = async () => {
+  //     if (isInGame && winned && lastWonTx) {
+  //       console.log('Conditions met, component rendered.');
+  //       await handleGetProof(lastWonTx); // Awaiting the async function
+  //     }
+  //   };
+
+  //   performAsyncOperation()
+  // }, [isInGame, winned])
   
   useEffect(() => {
     const socket = io('wss://b10g0wn1-8888.asse.devtunnels.ms/');
@@ -144,6 +158,12 @@ const Home: React.FC = () => {
     };
   }, []);
 
+  const handleReinitTPS = () => {
+    fetch('https://b10g0wn1-8888.asse.devtunnels.ms/reinit', {
+      method: 'POST'
+    })
+  }
+
   const handleRacer1Click = () => {
     if (socket) {
       const message = {
@@ -155,6 +175,14 @@ const Home: React.FC = () => {
       setSpamCount(spamCount + 1);
     }
   };
+
+  const handleGetProof = async (lastWonTx: string) => {
+    console.log(lastWonTx)
+    await new Promise((resolve) => setTimeout(resolve, 15000)); // delay to prevent spam
+    const lumos = await LumosService.readOnChainMessage(lastWonTx);
+    setProofMsg(lumos);
+    return lumos;
+  }
 
   const handleRacer2Click = () => {
     if (socket) {
@@ -205,9 +233,15 @@ const Home: React.FC = () => {
     <div>
       <CanvasJSChart options={options} />
       <div className="flex items-center justify-center">
-        <div className="bg-gray-100 p-4">TPS: <span className="font-bold text-xl pl-1">{tps * 2}</span> transactions/second</div>
+        <div className="bg-gray-100 p-4">TPS: <span className="font-bold text-xl pl-1">{tps}</span> transactions/second</div>
       </div> <br />
       <div className="text-center">
+        <button 
+          onClick={handleReinitTPS} 
+          className={`px-4 py-2 font-semibold text-white rounded-lg`}
+        >
+          RESET BENCHMARK
+        </button> <br /><br />
         <button 
           onClick={handleJoinGame} 
           disabled={isInGame}
@@ -244,18 +278,26 @@ const Home: React.FC = () => {
           : 
           <div className="pt-5 text-2xl text-blueSecondary font-bold mb-2">
             Winner is: ..... <br></br>
-            Proof winner: {`https://pudge.explorer.nervos.org/transaction/${lastWonTx}`}
           </div>
         }
-        {(isInGame && winned) && <button 
-            className={`px-4 py-2 font-semibold text-white rounded-lg ml-2 ${
-              isInGame ? 'bg-red-600 hover:bg-red-700' : 'bg-gray-500 cursor-not-allowed'
-            }`}
-            disabled={!isInGame}
-            onClick={() => restartGame()}
-          >
-            Restart Game
-        </button>}
+        {(isInGame && winned) && 
+        <div>
+          <button 
+              className={`px-4 py-2 font-semibold text-white rounded-lg ml-2 ${
+                isInGame ? 'bg-red-600 hover:bg-red-700' : 'bg-gray-500 cursor-not-allowed'
+              }`}
+              disabled={!isInGame}
+              onClick={() => restartGame()}
+            >
+              Restart Game
+          </button>
+          <div className="pt-5 text-2xl text-blueSecondary font-bold mb-2">
+            Proof winner: {`https://pudge.explorer.nervos.org/transaction/${lastWonTx}`}
+          </div>
+          {/* <div className="pt-5 text-2xl text-blueSecondary font-bold mb-2">
+            Proof message: {onChainProofMsg}
+          </div> */}
+        </div>}
 
         {/* explorer start */}
         <div className="bg-gray-200 p-4 rounded-lg mt-4 max-h-[50vh] overflow-y-scroll">
