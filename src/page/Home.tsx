@@ -50,6 +50,9 @@ const Home: React.FC = () => {
 
   // </div>
   // );
+  const [explorerData, setExplorerData] = useState<any[]>([]);
+  const [lastClickGame, setLastClickGame] = useState<number>(0);
+  const [winned, setWinned] = useState(false);
   const [isInGame, setIsInGame] = useState(false);
   const [tps, setTps] = useState(0)
   const [spamCount, setSpamCount] = useState(0);
@@ -69,36 +72,61 @@ const Home: React.FC = () => {
       console.log('Connected to server');
     });
     console.log('alo')
-    socket.on('message', (newData: {from_address: string, from_value: string, to_address: string, to_value: string, tps: number}) => {
-      setTps(newData.tps)
-      // console.log("newData ", newData);
-      const updatedDataPoints = [
-        {
-          x: Number(newData.from_address.replace('0x', '')),
-          y: Number(newData.from_value)
-        },
-        {
-          x: Number(newData.to_address.replace('0x', '')),
-          y: Number(newData.to_value)
-        }
-      ]
-      setDataPoints(prevDataPoints => {
-        const newDataPoints = [...prevDataPoints];
-        // console.log("count prevDataPoints ", prevDataPoints.length);
-        
-        updatedDataPoints.forEach(newPoint => {
-          if (!(newPoint.y > 1000000)) {
-            const existingIndex = newDataPoints.findIndex(point => point.x === newPoint.x);
-            if (existingIndex >= 0) {
-              newDataPoints[existingIndex].y = newPoint.y;
-            } else {
-              newDataPoints.push(newPoint);
+    socket.on('message', (newData: {
+      code_hash: string, 
+      from_address?: string, 
+      from_value?: string, 
+      to_address?: string, 
+      to_value?: string, 
+      tps?: number, 
+      win?: boolean,
+      data?: any 
+    }) => {
+      console.log("new Data: ", newData);
+      
+      switch (newData.code_hash) {
+        case '0xtransfer':
+          setTps(newData.tps!)
+          // console.log("newData ", newData);
+          const updatedDataPoints = [
+            {
+              x: Number(newData.from_address!.replace('0x', '')),
+              y: Number(newData.from_value)
+            },
+            {
+              x: Number(newData.to_address!.replace('0x', '')),
+              y: Number(newData.to_value)
             }
-          }
-        });
+          ]
+          setDataPoints(prevDataPoints => {
+            const newDataPoints = [...prevDataPoints];
+            // console.log("count prevDataPoints ", prevDataPoints.length);
+            
+            updatedDataPoints.forEach(newPoint => {
+              if (!(newPoint.y > 1000000)) {
+                const existingIndex = newDataPoints.findIndex(point => point.x === newPoint.x);
+                if (existingIndex >= 0) {
+                  newDataPoints[existingIndex].y = newPoint.y;
+                } else {
+                  newDataPoints.push(newPoint);
+                }
+              }
+            });
 
-        return newDataPoints;
-      });
+            return newDataPoints;
+          });
+          break;
+        case 'explorer': 
+          addItem(newData.data);
+          break;  
+
+        case '0xduangua': 
+          setWinned(true)
+          break; 
+
+        default:
+          break;
+      }
     });
     
     setSocket(socket);
@@ -119,6 +147,7 @@ const Home: React.FC = () => {
         userAddress: '0x0'
       };
       socket.send(JSON.stringify(message));
+      setLastClickGame(0)
       setSpamCount(spamCount + 1);
     }
   };
@@ -130,8 +159,24 @@ const Home: React.FC = () => {
         userAddress: '0x1'
       };
       socket.send(JSON.stringify(message));
+      setLastClickGame(1)
       setSpamCount(spamCount + 1);
     }
+  };
+
+  const restartGame = () => {
+    setWinned(false)
+    setIsInGame(false)
+  }
+
+  const addItem = (newItem: any) => {
+    setExplorerData((prevData) => {
+      const updatedData = [...prevData, newItem];
+      if (updatedData.length > 10) {
+        updatedData.shift(); // Remove the first item if length exceeds 10
+      }
+      return updatedData;
+    });
   };
 
   const options = {
@@ -156,38 +201,76 @@ const Home: React.FC = () => {
     <div>
       <CanvasJSChart options={options} />
       <div className="flex items-center justify-center">
-        <div className="bg-gray-100 p-4">TPS: <span className="font-bold text-xl pl-1">{tps}</span> transactions/second</div>
-      </div> <br /><br />
+        <div className="bg-gray-100 p-4">TPS: <span className="font-bold text-xl pl-1">{tps * 2}</span> transactions/second</div>
+      </div> <br />
       <div className="text-center">
-      <button 
-        onClick={handleJoinGame} 
-        disabled={isInGame}
-        className={`px-4 py-2 font-semibold text-white rounded-lg ${
-          isInGame ? 'bg-gray-500 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-700'
-        }`}
-      >
-        {isInGame ? 'In Game' : 'Join Game'}
-      </button> <br /><br />
-      <div className="flex justify-center">
-      <button 
-        className={`px-4 py-2 font-semibold text-white rounded-lg ${
-          isInGame ? 'bg-green-500 hover:bg-green-700' : 'bg-gray-500 cursor-not-allowed'
-        }`}
-        disabled={!isInGame}
-        onClick={() => handleRacer1Click()}
-      >
-        Racer 1
-      </button>
-      <button 
-        className={`px-4 py-2 font-semibold text-white rounded-lg ml-2 ${
-          isInGame ? 'bg-green-500 hover:bg-green-700' : 'bg-gray-500 cursor-not-allowed'
-        }`}
-        disabled={!isInGame}
-        onClick={() => handleRacer2Click()}
-      >
-        Racer 2
-      </button>
-      </div>
+        <button 
+          onClick={handleJoinGame} 
+          disabled={isInGame}
+          className={`px-4 py-2 font-semibold text-white rounded-lg ${
+            isInGame ? 'bg-gray-500 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-700'
+          }`}
+        >
+          {isInGame ? 'In Game' : 'Join Game'}
+        </button> <br /><br />
+        <div className="flex justify-center">
+          <button 
+            className={`px-4 py-2 font-semibold text-white rounded-lg ${
+              isInGame ? 'bg-green-500 hover:bg-green-700' : 'bg-gray-500 cursor-not-allowed'
+            }`}
+            disabled={!isInGame}
+            onClick={() => handleRacer1Click()}
+          >
+            Racer 1
+          </button> 
+          <button 
+            className={`px-4 py-2 font-semibold text-white rounded-lg ml-2 ${
+              isInGame ? 'bg-green-500 hover:bg-green-700' : 'bg-gray-500 cursor-not-allowed'
+            }`}
+            disabled={!isInGame}
+            onClick={() => handleRacer2Click()}
+          >
+            Racer 2
+          </button>
+        </div>
+        {winned ? 
+            <div className="pt-5 text-2xl text-blueSecondary font-bold mb-2">
+              Winner is: {lastClickGame === 0 ? "Racer 1" : "Racer 2"}
+            </div>
+          : 
+          <div className="pt-5 text-2xl text-blueSecondary font-bold mb-2">
+            Winner is: .....
+          </div>
+        }
+        
+        {(isInGame && winned) && <button 
+            className={`px-4 py-2 font-semibold text-white rounded-lg ml-2 ${
+              isInGame ? 'bg-red-600 hover:bg-red-700' : 'bg-gray-500 cursor-not-allowed'
+            }`}
+            disabled={!isInGame}
+            onClick={() => restartGame()}
+          >
+            Restart Game
+        </button>}
+
+        {/* explorer start */}
+        <div className="bg-gray-200 p-4 rounded-lg mt-4 max-h-[50vh] overflow-y-scroll">
+          <h2 className="text-xl font-bold mb-2">Explorer Data</h2>
+          {explorerData.length > 0 ? (
+            <ul>
+              {explorerData.map((item, index) => (
+                <li key={index} className="p-2 mb-2 bg-blue-100 rounded">
+                  {JSON.stringify(item)}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>No data available</p>
+          )}
+        </div>
+
+        {/* explorer end */}
+        
       </div>
     </div>
   );
