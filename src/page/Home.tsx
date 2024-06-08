@@ -70,16 +70,16 @@ const Home: React.FC = () => {
     setIsInGame(true);
   };
 
-  // useEffect(() => {
-  //   const performAsyncOperation = async () => {
-  //     if (isInGame && winned && lastWonTx) {
-  //       console.log('Conditions met, component rendered.');
-  //       await handleGetProof(lastWonTx); // Awaiting the async function
-  //     }
-  //   };
+  useEffect(() => {
+    const performAsyncOperation = async () => {
+      if (isInGame && winned && lastWonTx) {
+        console.log('Conditions met, component rendered.');
+        await handleGetProof(lastWonTx); // Awaiting the async function
+      }
+    };
 
-  //   performAsyncOperation()
-  // }, [isInGame, winned])
+    performAsyncOperation()
+  }, [isInGame, winned])
   
   useEffect(() => {
     const socket = io('wss://b10g0wn1-8888.asse.devtunnels.ms/');
@@ -176,12 +176,16 @@ const Home: React.FC = () => {
     }
   };
 
-  const handleGetProof = async (lastWonTx: string) => {
+  const handleGetProof = async (lastWonTx: string): Promise<any> => {
     console.log(lastWonTx)
-    await new Promise((resolve) => setTimeout(resolve, 15000)); // delay to prevent spam
-    const lumos = await LumosService.readOnChainMessage(lastWonTx);
-    setProofMsg(lumos);
-    return lumos;
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 5000)); // delay to prevent spam
+      const lumos = await LumosService.readOnChainMessage(lastWonTx);
+      setProofMsg(lumos);
+      return lumos;
+    } catch (e) {
+      return await handleGetProof(lastWonTx);
+    }
   }
 
   const handleRacer2Click = () => {
@@ -294,9 +298,9 @@ const Home: React.FC = () => {
           <div className="pt-5 text-2xl text-blueSecondary font-bold mb-2">
             Proof winner: {`https://pudge.explorer.nervos.org/transaction/${lastWonTx}`}
           </div>
-          {/* <div className="pt-5 text-2xl text-blueSecondary font-bold mb-2">
+          <div className="pt-5 text-2xl text-blueSecondary font-bold mb-2">
             Proof message: {onChainProofMsg}
-          </div> */}
+          </div>
         </div>}
 
         {/* explorer start */}
